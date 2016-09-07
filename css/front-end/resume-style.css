@@ -43,3 +43,54 @@
 .resume .clearfix {	display: inline-block;}
 html[xmlns] .resume .clearfix {	display: block;}
 * html .resume .clearfix {	height: 1%; }
+
+/* Skills */
+.skillset>label { 
+	float: left; 
+	margin-top: 0.5em;
+	margin-right: 3px;
+}
+.skillset>label:after {
+	content: ": ";
+}
+.skill-group>label { display: none; }
+.resume ul.skill-groups, .resume li.skill-group, .resume ul.skills, .resume li.skill {
+	display: inline-block;
+}
+.resume ul.skill-groups, .resume ul.skills {
+	padding: 0px;
+}
+.resume li.skill-group {
+	margin: 0px 2px;
+	padding-top: 3px;
+	background-color: #A1AA9F;
+	border-radius: 4px;
+}
+.resume li.skill {
+	margin-right: 1px;
+	padding: 2px 6px;
+	background-color: #D6D8DF;
+	border-radius: 4px;
+	min-width: 3em;
+	min-height: 1.2em;
+}
+.resume li.skill:nth-child(1) {
+	margin-left: 1px;
+}
+.resume li.skill .skill-level {
+	float: left;
+	padding: 2px 6px;
+	margin: -2px -6px;
+	background-color:#BACDD8;
+	border-bottom-radius: 4px;	
+}
+ul.skills>li.skill {
+	border: 1px solid #A1AA9F; 
+}
+ul.skill-groups>li.skill {
+	border: 1px solid #A1AA9F; 
+	margin-right: 4px;
+	border-top-width: 4px;
+}
+
+

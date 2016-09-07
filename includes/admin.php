@@ -31,6 +31,7 @@ class WP_Resume_Admin {
 		//ajax callbacks
 		add_action('wp_ajax_add_wp_resume_section', array( &$this, 'ajax_add') );
 		add_action('wp_ajax_add_wp_resume_organization', array( &$this, 'ajax_add') );
+		add_action('wp_ajax_add_wp_resume_skill', array( &$this, 'ajax_add') );
 		add_action('wp_ajax_wp_resume_hide_donate', array( &$this, 'hide_donate') );
 
 		//edit position screen
@@ -62,6 +63,8 @@ class WP_Resume_Admin {
 		add_action( 'wp_resume_section_edit_form', 'qtrans_modifyTermFormFor' );
 		add_action( 'wp_resume_organization_add_form', 'qtrans_modifyTermFormFor' );
 		add_action( 'wp_resume_organization_edit_form', 'qtrans_modifyTermFormFor' );
+		add_action( 'wp_resume_skill_add_form', 'qtrans_modifyTermFormFor' );
+		add_action( 'wp_resume_skill_edit_form', 'qtrans_modifyTermFormFor' );
 		
 	}
 	
@@ -87,12 +90,16 @@ class WP_Resume_Admin {
 				'publish_resume_positions'          => true,
 				'manage_resume_sections'            => true,
 				'manage_resume_organizations'       => true,
+				'manage_resume_skills'              => true,
 				'edit_resume_sections'              => true,
 				'edit_resume_organizations'         => true,
+				'edit_resume_skills'                => true,
 				'delete_resume_sections'            => true,
 				'delete_resume_organizations'       => true,
+				'delete_resume_skills'              => true,
 				'assign_resume_sections'            => true,
 				'assign_resume_organizations'       => true,
+				'assign_resume_skills'              => true,
 				),
 			'editor' => array( 
 				'edit_resume'                       => true,
@@ -110,12 +117,16 @@ class WP_Resume_Admin {
 				'publish_resume_positions'          => true,
 				'manage_resume_sections'            => true,
 				'manage_resume_organizations'       => true,
+				'manage_resume_skills'              => true,
 				'edit_resume_sections'              => true,
 				'edit_resume_organizations'         => true,
+				'edit_resume_skills'                => true,
 				'delete_resume_sections'            => true,
 				'delete_resume_organizations'       => true,
+				'delete_resume_skills'              => true,
 				'assign_resume_sections'            => true,
 				'assign_resume_organizations'       => true,
+				'assign_resume_skills'              => true,
 				),
 			'author' => array( 
 				'edit_resume'                       => true,
@@ -133,12 +144,16 @@ class WP_Resume_Admin {
 				'publish_resume_positions'          => true,
 				'manage_resume_sections'            => true,
 				'manage_resume_organizations'       => true,
+				'manage_resume_skills'              => true,
 				'edit_resume_sections'              => true,
 				'edit_resume_organizations'         => true,
+				'edit_resume_skills'                => true,
 				'delete_resume_sections'            => false,
 				'delete_resume_organizations'       => false,
+				'delete_resume_skills'              => false,
 				'assign_resume_sections'            => true,
 				'assign_resume_organizations'       => true,
+				'assign_resume_skills'              => true,
 				),
 			'contributor' => array( 
 				'edit_resume'                       => true, 
@@ -156,12 +171,16 @@ class WP_Resume_Admin {
 				'publish_resume_positions'          => false,
 				'manage_resume_sections'            => true,
 				'manage_resume_organizations'       => true,
+				'manage_resume_skills'              => true,
 				'edit_resume_sections'              => true,
 				'edit_resume_organizations'         => true,
+				'edit_resume_skills'                => true,
 				'delete_resume_sections'            => false,
 				'delete_resume_organizations'       => false,
+				'delete_resume_skills'              => false,
 				'assign_resume_sections'            => true,
 				'assign_resume_organizations'       => true,
+				'assign_resume_skills'              => true,
 				),
 			'subscriber' => array( 
 				'edit_resume'                       => false, 
@@ -179,12 +198,16 @@ class WP_Resume_Admin {
 				'publish_resume_positions'          => false,
 				'manage_resume_sections'            => false,
 				'manage_resume_organizations'       => false,
+				'manage_resume_skills'              => false,
 				'edit_resume_sections'              => false,
 				'edit_resume_organizations'         => false,
+				'edit_resume_skills'                => false,
 				'delete_resume_sections'            => false,
 				'delete_resume_organizations'       => false,
+				'delete_resume_skills'              => false,
 				'assign_resume_sections'            => false,
 				'assign_resume_organizations'       => false,
+				'assign_resume_skills'              => false,
 				),
 		);
 
@@ -206,6 +229,10 @@ class WP_Resume_Admin {
 		//same with orgs
 		add_meta_box( 'wp_resume_organizationdiv', __('Organization', 'wp-resume'), array( &$this, 'taxonomy_box' ), 'wp_resume_position', 'side', 'low', array('type'=>'wp_resume_organization') );
 
+        //Skills are not exclusive, and can be hierarchical. wp_dropdown_categories is used, modified, to generate a taxonomy multiselect box and a parent pulldown
+        add_meta_box( 'wp_resume_skilldiv', __('Skills', 'wp-resume'), array( &$this, 'taxonomy_box' ), 'wp_resume_position', 'side', 'low', array('type'=>'wp_resume_skill') );
+        
+        
 		//build the date meta input box
 		add_meta_box( 'dates', __('Date', 'wp-resume'), array( &$this, 'date_box' ), 'wp_resume_position', 'normal', 'high');
 
@@ -236,9 +263,12 @@ class WP_Resume_Admin {
 		if ( !current_user_can( $taxonomy->cap->edit_terms ) )
 			die('-1');
 
-		//insert term
-		$desc = ( isset( $_POST['new_'. $type . '_location'] ) ) ? $_POST['new_'. $type . '_location'] : '';
-		$term = wp_insert_term( $_POST['new_'. $type], $type, array('description' => $desc ) );
+		//set organization_location or skill_level as term description
+		$desc = isset( $_POST['new_'. $type . '_location'] ) ? $_POST['new_'. $type . '_location'] : ( isset( $_POST['new_'. $type . '_level'] )  ? $_POST['new_'. $type . '_level'] : '' );
+		//set parent for terms inlcuding it
+		$parent = isset( $_POST['new_'. $type . '_parent'] ) ? (int) $_POST['new_'. $type . '_parent'] : 0 ;
+        //insert term
+		$term = wp_insert_term( $_POST['new_'. $type], $type, array('description' => $desc, 'parent' => $parent ) );
 
 		//catch errors
 		if ( is_wp_error( $term ) ) {
@@ -246,10 +276,22 @@ class WP_Resume_Admin {
 			exit();
 		}
 
-		//associate position with new term
-		wp_set_object_terms( $_POST['post_ID'], $term['term_id'], 'wp_resume_section' );
 
-		if ( $type == 'section' ) {
+		$new_terms = $term['term_id'];
+		
+		if ( $type == 'wp_resume_skill' ) {
+			$new_terms = array();
+			$all_terms = wp_get_post_terms( $_POST['post_ID'], $type );
+			foreach ( $all_terms as $a_term ) {
+				array_push( $new_terms, $a_term->term_id );
+			}
+			array_push( $new_terms, $term['term_id']);
+		} 
+
+		//associate position with new term
+		wp_set_object_terms( $_POST['post_ID'], $new_terms ,  $type );
+
+		if ( $type == 'wp_resume_section' ) {
 			$user = wp_get_current_user();
 			$author = $user->user_nicename;
 			$this->parent->cache->delete( $author . '_sections' );
@@ -346,6 +388,11 @@ class WP_Resume_Admin {
 		//Associate the wp_resume_position with our taxonomies
 		wp_set_object_terms( $post_id, (int) $_POST['wp_resume_section'], 'wp_resume_section' );
 		wp_set_object_terms( $post_id, (int) $_POST['wp_resume_organization'], 'wp_resume_organization' );
+        $skills = $_POST['wp_resume_skill'];
+        if( $skills[0] == -1 ){ 
+            $skills = array();
+        }
+        wp_set_object_terms( $post_id, $skills, 'wp_resume_skill' );
 
 		//update the posts date meta
 		update_post_meta( $post_id, 'wp_resume_from', wp_filter_nohtml_kses( $_POST['from'] ) );
@@ -513,7 +560,7 @@ class WP_Resume_Admin {
 
 		if ( current_user_can( 'manage_options' ) ) {
 			//move site-wide fields to output array
-			$fields = array( 'fix_ie', 'rewrite', 'hide-title' );
+			$fields = array( 'fix_ie', 'rewrite', 'hide-title', 'skills', 'groups' );
 
 			foreach ($fields as $field)
 				$options[$field] = (int) $data[$field];
@@ -782,6 +829,8 @@ class WP_Resume_Admin {
 			'showAdv'       => __('Show Advanced Options', 'wp-resume'),
 			'orgName'       => __('The name of the organization as you want it to appear', 'wp-resume'),
 			'orgLoc'        => __('Traditionally the location of the organization (optional)', 'wp-resume'),
+			'skillName'     => __('The name of the skill or skill group as you want it to appear', 'wp-resume'),
+			'skillLevel'    => __('Your level of competence or experience in this skill. Can be descriptive names such as "Intermediate" or numeric values such as a percentage from 1-100 (optional)', 'wp-resume'),
 			'missingTaxMsg' => __( 'Please make sure that the position is associated with a section before saving', 'wp-resume'),
 		);
 

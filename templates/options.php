@@ -118,6 +118,22 @@
     		</td>
     	</tr>
     	<tr valign="top" class="underHood">
+    		<th scrope="row"><?php _e('Show Skills', 'wp-resume'); ?></th>
+    		<td>
+    			<input type="radio" name="wp_resume_options[skills]" id="skills_yes" value="1" <?php checked($options['skills'], 1); ?>/> <label for="skills_yes"><?php _e('Yes', 'wp-resume'); ?></label><br />
+    			<input type="radio" name="wp_resume_options[skills]" id="skills_no" value="0" <?php checked($options['skills'], 0); ?> <?php checked($options['skills'], null); ?>/> <label for="skills_no"><?php _e('No', 'wp-resume'); ?></label><br />
+    			<span class="description"><?php _e('Shows any skills attached to a position, after the content, similar to categories on a post.', 'wp-resume'); ?>.</span>
+    		</td>
+    	</tr>
+    	<tr valign="top" class="underHood">
+    		<th scrope="row"><?php _e('Show Skill Groups', 'wp-resume'); ?></th>
+    		<td>
+    			<input type="radio" name="wp_resume_options[groups]" id="groups_yes" value="1" <?php checked($options['groups'], 1); ?>/> <label for="groups_yes"><?php _e('Yes', 'wp-resume'); ?></label><br />
+    			<input type="radio" name="wp_resume_options[groups]" id="groups_no" value="0" <?php checked($options['groups'], 0); ?> <?php checked($options['groups'], null); ?>/> <label for="groups_no"><?php _e('No', 'wp-resume'); ?></label><br />
+    			<span class="description"><?php _e('When skills are used, skills with children will be considered "Skill Groups" and treated by the default template as categories within which those child skills fall.', 'wp-resume'); ?>.</span>
+    		</td>
+    	</tr>
+    	<tr valign="top" class="underHood">
     		<th scrope="row"><?php _e('Customizing WP Resume', 'wp-resume'); ?></th>
     		<td>
     			<Strong><?php _e('Style Sheets', 'wp-resume'); ?></strong><br />

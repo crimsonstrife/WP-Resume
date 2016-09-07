@@ -18,13 +18,18 @@ class WP_Resume
       # Edit Position Page
       when "wp_resume_position"
         jQuery("#publish").click @validatePosition
-        @addTaxonomyBoxEvents taxonomy for taxonomy in ["wp_resume_section", "wp_resume_organization"]
+        @addTaxonomyBoxEvents taxonomy for taxonomy in ["wp_resume_section", "wp_resume_organization", "wp_resume_skill"]
      
       # Edit Organization Page
       when "edit-wp_resume_organization"
         jQuery("#parent, #tag-slug").parent().hide()
         jQuery("#tag-name").siblings("p").text wp_resume.orgName
         jQuery("#tag-description").attr("rows", "1").siblings("label").text("Location").siblings("p").text wp_resume.orgLoc
+    
+      # Edit Skill Page
+      when "edit-wp_resume_skill"
+        jQuery("#tag-name").siblings("p").text wp_resume.skillName
+        jQuery("#tag-description").attr("rows", "1").siblings("label").text("Skill Level").siblings("p").text wp_resume.skillLevel
     
       # Edit Section Page
       when "edit-wp_resume_section"
@@ -78,7 +83,7 @@ class WP_Resume
     jQuery("#add_" + taxonomy + "_button").live "click", (event) ->
       type = jQuery(this).attr("id").replace("_button", "").replace("add_", "")
       jQuery("#" + type + "-ajax-loading").show()
-      jQuery.post "admin-ajax.php?action=add_" + type, jQuery("#new_" + type + ", #new_" + type + "_location, #_ajax_nonce-add-" + type + ", #post_ID").serialize(), (data) ->
+      jQuery.post "admin-ajax.php?action=add_" + type, jQuery("#new_" + type + ", #new_" + type + "_location, #new_" + type + "_level, #new_" + type + "_parent, #_ajax_nonce-add-" + type + ", #post_ID").serialize(), (data) ->
         jQuery("#" + type + "div .inside").html data
       event.preventDefault()  
   

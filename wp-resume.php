@@ -3,7 +3,7 @@
 Plugin Name: WP Resume
 Plugin URI: http://ben.balter.com/2010/09/12/wordpress-resume-plugin/
 Description: Out-of-the-box plugin which utilizes custom post types and taxonomies to add a snazzy resume to your personal blog or Web site.
-Version: 2.5.7
+Version: 2.5.8a
 Author: Benjamin J. Balter
 Author URI: http://ben.balter.com/
 License: GPL3
@@ -160,7 +160,7 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 			'menu_position'        => null,
 			'register_meta_box_cb' => array( &$this->admin, 'meta_callback' ),
 			'supports'             => array( 'title', 'editor', 'revisions', 'custom-fields', 'page-attributes', 'author'),
-			'taxonomies'           => array('wp_resume_section', 'wp_resume_organization'),
+			'taxonomies'           => array('wp_resume_section', 'wp_resume_organization', 'wp_resume_skill'),
 		);
 
 		$args = $this->api->apply_filters( 'cpt', $args );
@@ -229,6 +229,37 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 
 		//Register organization taxonomy
 		register_taxonomy( 'wp_resume_organization', 'wp_resume_position', $args );
+
+		//Skill labels array
+		$labels = array(
+			'name'              => _x( 'Skills', 'taxonomy general name', 'wp-resume' ),
+			'singular_name'     => _x( 'Skill', 'taxonomy singular name', 'wp-resume' ),
+			'search_items'      => __( 'Search Skills', 'wp-resume' ),
+			'all_items'         => __( 'All Skills', 'wp-resume' ),
+			'parent_item'       => __( 'Skill Group', 'wp-resume' ),
+			'parent_item_colon' => __( 'Skill Group:', 'wp-resume' ),
+			'edit_item'         => __( 'Edit Skill', 'wp-resume' ),
+			'update_item'       => __( 'Update Skill', 'wp-resume' ),
+			'add_new_item'      => __( 'Add New Skill', 'wp-resume' ),
+			'new_item_name'     => __( 'New Skill Name', 'wp-resume' ),
+		);
+
+		$args = $this->api->apply_filters( 'skill_ct', array(
+			'hierarchical' => true,
+			'labels' => $labels,
+			'query_var' => true,
+			'rewrite' => ( $rewrite ) ? array( 'slug' => 'skills' ) : false,
+			'capabilities' => array(
+				'manage_terms'  => 'manage_resume_skills',
+				'edit_terms'    => 'edit_resume_skills',
+				'delete_terms'  => 'delete_resume_skills',
+				'assign_terms ' => 'assign_resume_skills',
+				),
+			)
+		);
+
+		//Register skill taxonomy
+		register_taxonomy( 'wp_resume_skill', 'wp_resume_position', $args );
 
 	}
 
@@ -425,6 +456,103 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 	}
 
 
+    /**
+	 * Retrieves the skills associated with a given position
+	 * @since 2.5.8a
+	 */
+	function get_skills( $postID ) {
+
+		if ( $cache = $this->cache->get( $postID . '_skills' ) )
+			return $cache;
+
+		$skills = wp_get_object_terms( $postID, 'wp_resume_skill' );
+
+		if ( is_wp_error( $skills ) || !isset( $skills[0] ) )
+			return false;
+
+		$skills = $this->api->apply_filters( 'skills', $skills );
+
+		$this->cache->set( $postID . '_skills', $skills );
+
+		return $skills;
+
+	}
+    
+    /**
+	 * Retrieves the skill groups associated with a given position
+	 * @since 2.5.8a
+	 */
+	function get_skill_groups( $postID, $skills ) {
+		if( !is_array($skills) || !isset($skills[0]) ){
+			return false;
+		}
+		
+		if ( $cache = $this->cache->get( $postID . '_skill_groups' ) )
+			return $cache;
+        
+        $skill_ids = array();
+        foreach ( $skills as $skill ){
+            if( isset($skill->parent) ){
+                if ( !array_key_exists($skill->parent, $skill_ids) ){
+                    $skill_ids[(int)$skill->parent] = $skill;
+                }
+            }
+        }
+        $skill_ids = array_keys($skill_ids);
+        $groups = get_terms( array(
+            'taxonomy' => 'wp_resume_skill',
+            'hide_empty' => false,
+            'include' => $skill_ids
+        ) );
+        
+		if ( is_wp_error( $groups ) || !isset( $groups[0] ) )
+			return false;
+
+		$groups = $this->api->apply_filters( 'groups', $groups );
+
+		$this->cache->set( $postID . '_skill_groups', $groups );
+
+		return $groups;
+	}
+    
+    /**
+	 * Filters an array to remove elements with 'parent' property set. Used to identify skills not part of a skill group.
+	 * @param array $var an array of any object with a 'parent' property
+	 * @since 2.5.8a
+	 */
+	
+	function get_orphans( $skills ){ 
+		if( !function_exists('no_parent') ){
+			function no_parent( $var ){ return isset($var->parent) ? ($var->parent <= 0) : true; }
+		}
+		return is_array($skills) ? array_filter($skills, "no_parent") : array(); 
+	}
+    
+	/**
+	 * Echos HTML to represent a skill level as a progress bar to be styled by CSS.
+	 * @param int $level a percentage of skill mastery from 0-100
+	 * @since 2.5.8a
+	 */
+	function skill_bar($level){
+		if( $level ) echo "<span class='skill-level skill-level-$level' role='progressbar'
+aria-valuenow='$level' aria-valuemin='0' aria-valuemax='100' style='width: $level%'></span>";
+	}
+
+    /**
+	 * Echoes HTML to represent a skill as a list item with a skill_bar and a label
+	 * @since 2.5.8a
+	 */
+	function show_skill($skill){
+		$level = (int) $skill->description;							
+		echo "<li class='skill skill-{$skill->slug}'>";
+		
+		echo "<label itemprop='itemListElement'>";
+		echo $skill->name;
+		$this->skill_bar($level);
+		echo "</label>" . PHP_EOL . "</li>";
+	}
+    
+    
 	/**
 	 * Flushes all wp-resume data from the object cache, if it exists
 	 */
