@@ -534,6 +534,7 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 	 * @since 2.5.8a
 	 */
 	function skill_bar($level){
+		$level = str_replace( ' ', '-', $level );
 		if( $level ) echo "<span class='skill-level skill-level-$level' role='progressbar'
 aria-valuenow='$level' aria-valuemin='0' aria-valuemax='100' style='width: $level%'></span>";
 	}
@@ -543,16 +544,66 @@ aria-valuenow='$level' aria-valuemin='0' aria-valuemax='100' style='width: $leve
 	 * @since 2.5.8a
 	 */
 	function show_skill($skill){
-		$level = (int) $skill->description;							
-		echo "<li class='skill skill-{$skill->slug}'>";
-		
+		$level = (int) $skill->description;	
+		$rewrite = $this->options->get_option('rewrite');	
+		if( $rewrite ) echo "<a href='/skills/{$skill->slug}'>";
+		echo "<li class='skill skill-{$skill->slug}" . ($rewrite ? ' linked' : '') . "'>";
 		echo "<label itemprop='itemListElement'>";
 		echo $skill->name;
+		echo "</label>";
 		$this->skill_bar($level);
-		echo "</label>" . PHP_EOL . "</li>";
+		echo "</li>";
+		if( $rewrite ) echo "</a>";
 	}
     
-    
+	/**
+	 * Echoes HTML to represent the entire skillset, which will either be a linear list of skills, or if groups are enabled and skills arranged hierarchically, with child skills inside boxes representing their parent skill groups. Skills and groups also have levels, and numeric skill levels are drawn as percentage bars below the skill names (leave blank to disable).
+	 * @since 2.5.8a
+	 */
+    function show_skills($postID){
+		// get all selected skills
+		$skills = $this->get_skills( $postID );
+		// get the parents of all selected skills
+		// note: this list is not exclusive with $skills, if a parent is also selected itself
+		$groups = $this->get_skill_groups( $postID, $skills );
+		// if groups are shown, top-level skills with no selected children will otherwise be ignored.
+		// here they are included so they can be listed inside a "skill-group-none" group at the end.
+		$orphan_skills = $this->get_orphans( $skills );
+		// skills and groups can be enabled/disabled in the advanced options
+		$show_skills = $this->options->get_option('skills');
+		$show_groups = $this->options->get_option('groups');
+		if( $show_skills && is_array($skills) && count($skills) ){
+			$grouping = false;
+			echo '<section class="skillset" itemscope itemtype="http://schema.org/ItemList">';
+			echo '<label itemprop="name">Skillset</label>';
+				if( $show_groups && is_array($groups) && count($groups) ){ 
+					$grouping = true;
+					echo '<ul class="skill-groups">';
+					foreach ( $groups as $group ){
+						$level = (int) $group->description;
+						echo "<li class='skill-group skill-group-{$group->slug}'>";
+						$this->skill_bar($level);
+						echo "<label itemprop='about'>{$group->name}</label>";
+							echo '<ul class="skills">';
+								foreach ( $skills as $skill ){
+									if( $skill->parent != $group->term_id ) continue;
+									$this->show_skill($skill);
+								}
+							echo '</ul>';
+						echo '</li>';
+					}
+				} else { 
+					echo '<ul class="skills">'; 
+				}
+				if ( !$grouping ){ $orphan_skills = $skills; }
+				if ( count($orphan_skills) ) {
+					foreach ( $orphan_skills as $skill ){ $resume->show_skill($skill); } 
+				}
+				echo '</ul>';
+			echo '</section>';
+		}
+	}
+	
 	/**
 	 * Flushes all wp-resume data from the object cache, if it exists
 	 */
