@@ -70,6 +70,10 @@ class Plugin_Boilerplate_Enqueue_v_1 {
 			//when in debug mode prefer .dev.js version if it exists
 			if ( ( WP_DEBUG || SCRIPT_DEBUG ) && file_exists( str_replace( '.js', '.dev.js', $file ) ) )
 				continue;
+            
+            // when not in debug mode, avoid loading debug mode scripts
+            if ( ( !WP_DEBUG && !SCRIPT_DEBUG ) && preg_match('/\.dev\.js$/', $file ) )
+                continue;
 
 			$file = basename( $file );
 
