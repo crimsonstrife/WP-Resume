@@ -99,8 +99,6 @@ $options = $resume->options->get_options();
 						<?php } ?>
 						<div class="details" itemprop="description">
 						<?php the_content(); ?>
-						<?php $resume->show_skills( get_the_ID() ); ?>
-                        
 <?php 			//If the current user can edit posts, output the link
 				if ( current_user_can( 'edit_posts' ) ) 
 					edit_post_link( 'Edit' ); 	

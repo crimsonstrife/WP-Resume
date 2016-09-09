@@ -87,7 +87,10 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 
 		//init
 		add_action( 'wp_resume_init', array( &$this, 'init' ) );
-
+	
+		//position skills
+		add_filter('the_content', array( &$this, 'append_position_skills') );
+	
 		//back compat
 		add_filter( 'wp_resume_load_deprecated', '__return_false' );
 
@@ -520,7 +523,6 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 	 * @param array $var an array of any object with a 'parent' property
 	 * @since 2.5.8a
 	 */
-	
 	function get_orphans( $skills ){ 
 		if( !function_exists('no_parent') ){
 			function no_parent( $var ){ return isset($var->parent) ? ($var->parent <= 0) : true; }
@@ -529,38 +531,56 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 	}
     
 	/**
-	 * Echos HTML to represent a skill level as a progress bar to be styled by CSS.
+	 * Produces HTML to represent a skill level as a progress bar to be styled by CSS.
 	 * @param int $level a percentage of skill mastery from 0-100
 	 * @since 2.5.8a
 	 */
-	function skill_bar($level){
+	function skill_bar_html($level){
 		$level = str_replace( ' ', '-', $level );
-		if( $level ) echo "<span class='skill-level skill-level-$level' role='progressbar'
+		if( $level ) return "<span class='skill-level skill-level-$level' role='progressbar'
 aria-valuenow='$level' aria-valuemin='0' aria-valuemax='100' style='width: $level%'></span>";
+		return '';
+	}
+
+	/**
+	 * Echoes the HTML produced by skill_bar_html()
+	 */
+	function show_skill_bar($level){
+		echo $this->skill_bar_html($level);
 	}
 
     /**
-	 * Echoes HTML to represent a skill as a list item with a skill_bar and a label
+	 * Produces HTML to represent a skill as a list item with a skill_bar and a label
 	 * @since 2.5.8a
 	 */
-	function show_skill($skill){
+	function skill_html($skill){
+		$html = '';
 		$level = (int) $skill->description;	
 		$rewrite = $this->options->get_option('rewrite');	
-		if( $rewrite ) echo "<a href='/skills/{$skill->slug}'>";
-		echo "<li class='skill skill-{$skill->slug}" . ($rewrite ? ' linked' : '') . "'>";
-		echo "<label itemprop='itemListElement'>";
-		echo $skill->name;
-		echo "</label>";
-		$this->skill_bar($level);
-		echo "</li>";
-		if( $rewrite ) echo "</a>";
+		if( $rewrite ) $html .= "<a href='/skills/{$skill->slug}'>";
+		$html .= "<li class='skill skill-{$skill->slug}" . ($rewrite ? ' linked' : '') . "'>";
+		$html .= "<label itemprop='itemListElement'>";
+		$html .= $skill->name;
+		$html .= "</label>";
+		$html .=$this->skill_bar_html($level);
+		$html .= "</li>";
+		if( $rewrite ) $html .= "</a>";
+		return $html;
+	}
+	
+	/**
+	 * Echoes the HTML produced by skill_html()
+	 */
+	function show_skill($skill){
+		echo skill_html($skill);
 	}
     
 	/**
-	 * Echoes HTML to represent the entire skillset, which will either be a linear list of skills, or if groups are enabled and skills arranged hierarchically, with child skills inside boxes representing their parent skill groups. Skills and groups also have levels, and numeric skill levels are drawn as percentage bars below the skill names (leave blank to disable).
+	 * Produces HTML to represent the entire skillset, which will either be a linear list of skills, or if groups are enabled and skills arranged hierarchically, with child skills inside boxes representing their parent skill groups. Skills and groups also have levels, and numeric skill levels are drawn as percentage bars below the skill names (leave blank to disable).
 	 * @since 2.5.8a
 	 */
-    function show_skills($postID){
+    function skills_html($postID){
+		$html = '';
 		// get all selected skills
 		$skills = $this->get_skills( $postID );
 		// get the parents of all selected skills
@@ -574,35 +594,58 @@ aria-valuenow='$level' aria-valuemin='0' aria-valuemax='100' style='width: $leve
 		$show_groups = $this->options->get_option('groups');
 		if( $show_skills && is_array($skills) && count($skills) ){
 			$grouping = false;
-			echo '<section class="skillset" itemscope itemtype="http://schema.org/ItemList">';
-			echo '<label itemprop="name">Skillset</label>';
+			$html .= '<section class="skillset" itemscope itemtype="http://schema.org/ItemList">';
+			$html .= '<label itemprop="name">Skillset</label>';
 				if( $show_groups && is_array($groups) && count($groups) ){ 
 					$grouping = true;
-					echo '<ul class="skill-groups">';
+					$html .= '<ul class="skill-groups">';
 					foreach ( $groups as $group ){
 						$level = (int) $group->description;
-						echo "<li class='skill-group skill-group-{$group->slug}'>";
-						$this->skill_bar($level);
-						echo "<label itemprop='about'>{$group->name}</label>";
-							echo '<ul class="skills">';
+						$html .= "<li class='skill-group skill-group-" . $group->slug . "'>";
+						$html .= $this->skill_bar_html($level);
+						$html .= "<label itemprop='about'>" . $group->name . "</label>";
+							$html .= '<ul class="skills">';
 								foreach ( $skills as $skill ){
 									if( $skill->parent != $group->term_id ) continue;
-									$this->show_skill($skill);
+									$html .= $this->skill_html($skill);
 								}
-							echo '</ul>';
-						echo '</li>';
+							$html .= '</ul>';
+						$html .= '</li>';
 					}
 				} else { 
-					echo '<ul class="skills">'; 
+					$html .= '<ul class="skills">'; 
 				}
 				if ( !$grouping ){ $orphan_skills = $skills; }
 				if ( count($orphan_skills) ) {
-					foreach ( $orphan_skills as $skill ){ $resume->show_skill($skill); } 
+					foreach ( $orphan_skills as $skill ){
+						$html .= $resume->skill_html($skill); 
+					} 
 				}
-				echo '</ul>';
-			echo '</section>';
+				$html .= '</ul>';
+			$html .= '</section>';
 		}
+		return $html;
 	}
+	
+	/**
+	 * Echo the HTML produced by skills_html()
+	 */ 
+	function show_skills($postID){
+		echo $this->skills_html($postID);
+	}
+
+	/**
+	 * Adds the position skills to the end of the content.
+	 * @since 2.5.8a
+	 * @todo make options for above/below content, whether to include in archive posts, etc
+	 */	
+	function append_position_skills($content){
+		if( /*is_singular() &&*/ is_main_query() && get_post_type() == 'wp_resume_position' ) {
+			$new_content = $this->skills_html( get_the_ID() );	
+		}	
+		return $content . $new_content;
+	}
+
 	
 	/**
 	 * Flushes all wp-resume data from the object cache, if it exists
