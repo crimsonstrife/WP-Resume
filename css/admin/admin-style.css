@@ -36,3 +36,51 @@
 
 #loading-animation { display: none; }
 .wp_resume_admin ol li { list-style:decimal;}
+
+/* Projects Form */
+
+.project-form label {
+	width: 50%;
+	display: inline-block;
+}
+.project-form label input, .project-form label textarea {
+	float: right;
+	width: 100%;
+}
+.project-form label.project-description, .project-form label.project-link {
+	width: 100%;
+}
+
+li.project-form + li.project-form {
+	margin-top: 6px;
+	padding-top: 5px;
+	border-top: 1px dotted #b5b5b5;
+}
+
+.project-form .dashicons {
+	margin-left: 8px;
+}
+
+.project-form .dashicons:hover {
+	color: #0073aa;
+}
+
+.project-form .dashicons[disabled] {
+	color: #EEE;
+}
+
+.project-form .dashicons.project-add {
+	color: #0C3;
+}
+
+.project-form .dashicons.project-add:hover {
+	color: #9D9;
+}
+
+.project-form .dashicons.project-remove {
+	color: #F03;
+}
+
+.project-form .dashicons.project-remove:hover {
+	color: #F77;
+}

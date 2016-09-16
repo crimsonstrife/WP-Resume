@@ -646,6 +646,40 @@ aria-valuenow='$level' aria-valuemin='0' aria-valuemax='100' style='width: $leve
 		return $content . $new_content;
 	}
 
+	/**
+	 * Sets the post_meta 'projects' field to an array of associative arrays each representing a project.
+	 * Each element in the array should have fields named 'name', 'type', 'url', or 'description'.
+	 * @since 2.5.8a
+	 */
+	function set_projects($postID, $projects){
+		// before saving, clear any empty entries from the array
+		$to_save = array();
+		foreach ( $projects as $project ){
+			$empty = true;
+			foreach ( $project as $k => $v ) {
+				if ( strlen($v) > 0 ) {
+				 	$empty = false;
+					break;
+				}
+			}
+			if ( !$empty ) { 
+				array_push($to_save, $project);
+			}
+		}
+		if( !add_post_meta($postID, 'projects', $to_save, true ) ){
+			update_post_meta($postID, 'projects', $to_save);
+		}
+	}
+	
+	/**
+	 * Gets the 'projects' post_meta field which should be an array of associative arrays each representing a project.
+	 * Each element in the array should have fields named 'name', 'type', 'url', or 'description'.
+	 * @since 2.5.8a
+	 */
+	function get_projects($postID){
+		$projects = get_post_meta($postID, 'projects', true);
+		return is_array($projects) ? $projects : array();
+	}
 	
 	/**
 	 * Flushes all wp-resume data from the object cache, if it exists

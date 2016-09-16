@@ -232,6 +232,9 @@ class WP_Resume_Admin {
         //Skills are not exclusive, and can be hierarchical. wp_dropdown_categories is used, modified, to generate a taxonomy multiselect box and a parent pulldown
         add_meta_box( 'wp_resume_skilldiv', __('Skills', 'wp-resume'), array( &$this, 'taxonomy_box' ), 'wp_resume_position', 'side', 'low', array('type'=>'wp_resume_skill') );
         
+		//Projects are listed as an array of multi-value objects using an array editor
+		add_meta_box( 'projects', __('Projects', 'wp-resume'), array( &$this, 'projects_box' ), 'wp_resume_position', 'normal', 'high');
+
         
 		//build the date meta input box
 		add_meta_box( 'dates', __('Date', 'wp-resume'), array( &$this, 'date_box' ), 'wp_resume_position', 'normal', 'high');
@@ -359,6 +362,18 @@ class WP_Resume_Admin {
 
 	}
 
+	/** 
+	 * Generates a custom metadata box for an array of positions, each with multiple properties.
+	 * @since 2.5.8a
+	 * @params object $post the post object WP passes
+	 */
+	function projects_box( $post ) {
+		$projects = get_post_meta( $post->ID, 'projects', true );
+		if( !is_array($projects) ){
+			$projects = array();
+		}
+		$this->parent->template->projects_box( compact( 'projects' ) );
+	}
 
 	/**
 	 * Saves our custom taxonomies and date metadata on post add/update
@@ -398,6 +413,13 @@ class WP_Resume_Admin {
 		update_post_meta( $post_id, 'wp_resume_from', wp_filter_nohtml_kses( $_POST['from'] ) );
 		update_post_meta( $post_id, 'wp_resume_to', wp_filter_nohtml_kses( $_POST['to'] ) );
 
+		//update the post's projects meta array
+		$projects = $_POST['projects'];
+		for ( $i = 0; $i++; $i < count($projects) ) {
+			$projects[$i] = wp_filter_nohtml_kses($projects[$i]);
+		}
+		$this->parent->set_projects( $post_id, $projects );
+	
 		//If they did not set a menu order, calculate a best guess bassed off of chronology
 		//(menu order uses the posts's menu_order field and is 1 bassed by default)
 		if ($_POST['menu_order'] == 0) {

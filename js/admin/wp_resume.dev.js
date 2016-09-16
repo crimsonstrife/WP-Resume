@@ -3,6 +3,8 @@
   var WP_Resume;
 
   WP_Resume = (function() {
+    var init_project_controls, replace_project_index;
+
     function WP_Resume() {
       var j, len, ref, taxonomy;
       switch (pagenow) {
@@ -24,6 +26,13 @@
             taxonomy = ref[j];
             this.addTaxonomyBoxEvents(taxonomy);
           }
+          jQuery("span.project-up").click(this.projectUp);
+          jQuery("span.project-remove").click(this.projectRemove);
+          jQuery("span.project-add").click(this.projectAdd);
+          jQuery("span.project-down").click(this.projectDown);
+          jQuery("li.project-form").each(function(idx, el) {
+            return init_project_controls(jQuery(el));
+          });
           break;
         case "edit-wp_resume_organization":
           jQuery("#parent, #tag-slug").parent().hide();
@@ -103,6 +112,96 @@
         });
         return event.preventDefault();
       });
+    };
+
+    replace_project_index = function($project, newIndex) {
+      $project.find('[for^="projects"]').each(function(idx, el) {
+        var $el;
+        $el = jQuery(el);
+        return $el.attr('for', $el.attr('for').replace(/projects\[\d+\]/, 'projects[' + newIndex + ']'));
+      });
+      $project.find('[name^="projects"]').each(function(idx, el) {
+        var $el;
+        $el = jQuery(el);
+        return $el.attr('name', $el.attr('name').replace(/projects\[\d+\]/, 'projects[' + newIndex + ']'));
+      });
+      return $project.find('[id^="project"]').each(function(idx, el) {
+        var $el;
+        $el = jQuery(el);
+        return $el.attr('id', $el.attr('id').replace(/project\d+/, 'project' + newIndex));
+      });
+    };
+
+    init_project_controls = function($project) {
+      $project.find('span.project-up').attr('disabled', $project.index() === 0);
+      return $project.find('span.project-down').attr('disabled', $project.next().length === 0);
+    };
+
+    WP_Resume.prototype.projectUp = function(e) {
+      var $prev, $project, $target, index;
+      $target = jQuery(e.target);
+      $project = $target.closest('li.project-form');
+      index = $project.index();
+      $prev = $project.prev('li');
+      if (index > 0) {
+        replace_project_index($project, index - 1);
+        replace_project_index($prev, index);
+        $prev.insertAfter($project);
+        init_project_controls($project);
+        return init_project_controls($prev);
+      }
+    };
+
+    WP_Resume.prototype.projectRemove = function(e) {
+      var $parent, $project, $target, index;
+      $target = jQuery(e.target);
+      $project = $target.closest('li.project-form');
+      index = $project.index();
+      $parent = $project.parent();
+      if ($parent.children('li').length > 1) {
+        $project.remove();
+        return $parent.children('li').each(function(idx, el) {
+          if (idx >= index) {
+            replace_project_index(jQuery(el), idx);
+          }
+          return init_project_controls(jQuery(el));
+        });
+      } else {
+        $project.find('input').val('');
+        return $project.find('textarea').val('');
+      }
+    };
+
+    WP_Resume.prototype.projectAdd = function(e) {
+      var $clone, $project, $target, index;
+      $target = jQuery(e.target);
+      $project = $target.closest('li.project-form');
+      index = $project.index();
+      $clone = $project.clone(true).insertAfter($project);
+      $clone.find('input').val('');
+      $clone.find('textarea').val('');
+      $project.parent().children('li').each(function(idx, el) {
+        if (idx > index) {
+          replace_project_index(jQuery(el), idx);
+        }
+        return init_project_controls(jQuery(el));
+      });
+      return $clone.find('.project-name>input').focus();
+    };
+
+    WP_Resume.prototype.projectDown = function(e) {
+      var $next, $project, $target, index;
+      $target = jQuery(e.target);
+      $project = $target.closest('li.project-form');
+      index = $project.index();
+      $next = $project.next('li');
+      if (index < $project.parent().children('li').length - 1) {
+        replace_project_index($project, index + 1);
+        replace_project_index($next, index);
+        $next.insertBefore($project);
+        init_project_controls($project);
+        return init_project_controls($next);
+      }
     };
 
     WP_Resume.prototype.makeSortable = function() {
