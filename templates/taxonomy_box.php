@@ -7,7 +7,7 @@
 ?><?php if( $type == 'wp_resume_skill' ){ ?>
 <i>Use command or control-click to select multiple skills.</i>
 <?php $select_terms = wp_dropdown_categories( array( 'show_option_none' => 'None', 'echo' => 0, 'taxonomy' => $type, 'hide_empty' => false, 'hierarchical' => is_taxonomy_hierarchical( $type ), 'name' => $type, 'value_field' => 'slug' ) );
-$select_terms = str_replace( "' id=", "[]' style='max-height: 400px; overflow-y: scroll; height: 100%' multiple='multiple' id=", $select_terms );
+$select_terms = str_replace( "' id=", "[]' style='max-height: 400px; overflow-y: scroll; height: 100%; display: block;' multiple='multiple' id=", $select_terms );
 if( is_array($current) ){
 	foreach ($current as $key => $post_term){
 		$select_terms = str_replace(' value="' . $post_term->slug . '"', ' value="' . $post_term->slug . '" selected="selected"', $select_terms);
