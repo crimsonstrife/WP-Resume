@@ -7,10 +7,16 @@
  	if( !defined('project_fields_html') ){
 		function project_fields_html($i, $project = null){
 			$project_fields = array(
-				'name' => 'The official title of this project.',
-				'type' => 'The type of project (game, book, movie, etc.)',
-				'link' => 'A valid link to use when clicking on the name. Can be a relative or absolute URL.',
-				'description' => 'A description which can be displayed as a mouseover or underneath the title.'
+				'name' => __('The official title of this project.'),
+				'type' => __('The type of project (book, movie, game, etc.)'),
+				'link' => __('A valid link to use when clicking on the project name. Can be a relative or absolute URL.'),
+				'description' => __('A short description of this project and/or your duties on it.'),
+			);
+			$buttons = array(
+				'up' => __('Move Up'),
+				'down' => __('Move Down'),
+				'add' => __('Add Project'),
+				'remove' => __('Remove This Project'),
 			);
 			$html = '<li class="project-form">';
 			$html .= '<table border="0" cellspacing="0" cellpadding="0" width="100%"><tr><td valign="top" rowspan="4" width="100%">';
@@ -32,13 +38,13 @@
 	
 			$html .= <<<HTML
 				</td><td align="right" valign="center" width="30" height="25%">
-						<span class="project-up dashicons dashicons-arrow-up-alt2"></span>
+						<span role="button" title="{$buttons['up']}" class="project-up dashicons dashicons-arrow-up-alt2"></span>
 						</td></tr><tr><td align="right" valign="center" width="30" height="25%">
-						<span class="project-remove dashicons dashicons-dismiss"></span>
+						<span role="button" title="{$buttons['remove']}" class="project-remove dashicons dashicons-dismiss"></span>
 						</td></tr><tr><td align="right" valign="center" width="30" height="25%">
-						<span class="project-add dashicons dashicons-plus-alt"></span>
+						<span role="button" title="{$buttons['add']}" class="project-add dashicons dashicons-plus-alt"></span>
 						</td></tr><tr><td align="right" valign="center" width="30" height="25%">
-						<span class="project-down dashicons dashicons-arrow-down-alt2"></span>
+						<span role="button" title="{$buttons['down']}" class="project-down dashicons dashicons-arrow-down-alt2"></span>
 				</td></tr></table></li>
 HTML;
 			return $html;
