@@ -232,12 +232,13 @@ class WP_Resume_Admin {
         //Skills are not exclusive, and can be hierarchical. wp_dropdown_categories is used, modified, to generate a taxonomy multiselect box and a parent pulldown
         add_meta_box( 'wp_resume_skilldiv', __('Skills', 'wp-resume'), array( &$this, 'taxonomy_box' ), 'wp_resume_position', 'side', 'low', array('type'=>'wp_resume_skill') );
         
-		//Projects are listed as an array of multi-value objects using an array editor
-		add_meta_box( 'projects', __('Projects', 'wp-resume'), array( &$this, 'projects_box' ), 'wp_resume_position', 'normal', 'high');
-
         
 		//build the date meta input box
 		add_meta_box( 'dates', __('Date', 'wp-resume'), array( &$this, 'date_box' ), 'wp_resume_position', 'normal', 'high');
+
+		//Projects are listed as an array of multi-value objects using an array editor
+		add_meta_box( 'projectsdiv', __('Projects', 'wp-resume'), array( &$this, 'projects_box' ), 'wp_resume_position', 'normal', 'high');
+
 
 		//build custom order box w/ helptext
 		add_meta_box( 'pageparentdiv', __('Resume Order', 'wp-resume'), array( &$this, 'order_box' ), 'wp_resume_position', 'side', 'low');
