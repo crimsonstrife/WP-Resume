@@ -559,10 +559,8 @@ aria-valuenow='$level' aria-valuemin='0' aria-valuemax='100' style='width: $leve
 		$rewrite = $this->options->get_option('rewrite');	
 		if( $rewrite ) $html .= "<a href='/skills/{$skill->slug}'>";
 		$html .= "<li class='skill skill-{$skill->slug}" . ($rewrite ? ' linked' : '') . "'>";
-		$html .= "<label itemprop='itemListElement'>";
-		$html .= $skill->name;
-		$html .= "</label>";
-		$html .=$this->skill_bar_html($level);
+		$html .= "<label itemprop='itemListElement'>{$skill->name}</label>";
+		$html .= $this->skill_bar_html($level);
 		$html .= "</li>";
 		if( $rewrite ) $html .= "</a>";
 		return $html;
@@ -572,7 +570,7 @@ aria-valuenow='$level' aria-valuemin='0' aria-valuemax='100' style='width: $leve
 	 * Echoes the HTML produced by skill_html()
 	 */
 	function show_skill($skill){
-		echo skill_html($skill);
+		echo $this->skill_html($skill);
 	}
     
 	/**
@@ -618,7 +616,7 @@ aria-valuenow='$level' aria-valuemin='0' aria-valuemax='100' style='width: $leve
 				if ( !$grouping ){ $orphan_skills = $skills; }
 				if ( count($orphan_skills) ) {
 					foreach ( $orphan_skills as $skill ){
-						$html .= $resume->skill_html($skill); 
+						$html .= $this->skill_html($skill); 
 					} 
 				}
 				$html .= '</ul>';
