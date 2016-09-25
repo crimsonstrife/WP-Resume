@@ -199,7 +199,7 @@ class WP_Resume_Templating {
 		foreach( array( 'from' => 'dtstart', 'to' => 'dtend' ) as $field => $class ) {
 			
 			$value = get_post_meta( $ID, "wp_resume_{$field}", true );
-			$itemprop = ( $class = 'dtstart' ) ? 'startDate' : 'endDate';
+			$itemprop = ( $class == 'dtstart' ) ? 'startDate' : 'endDate';
 
 			//we don't have this field, skip
 			if ( !$value)
