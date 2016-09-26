@@ -122,7 +122,7 @@
     		<td>
     			<input type="radio" name="wp_resume_options[skills]" id="skills_yes" value="1" <?php checked($options['skills'], 1); ?>/> <label for="skills_yes"><?php _e('Yes', 'wp-resume'); ?></label><br />
     			<input type="radio" name="wp_resume_options[skills]" id="skills_no" value="0" <?php checked($options['skills'], 0); ?> <?php checked($options['skills'], null); ?>/> <label for="skills_no"><?php _e('No', 'wp-resume'); ?></label><br />
-    			<span class="description"><?php _e('Shows any skills attached to a position, after the content, similar to categories on a post.', 'wp-resume'); ?>.</span>
+    			<span class="description"><?php _e('Shows any skills attached to a position, after the content, similar to categories or tags on a post. If URL rewriting is enabled, skills will be links to a list of positions associated with that skill', 'wp-resume'); ?>.</span>
     		</td>
     	</tr>
     	<tr valign="top" class="underHood">
@@ -130,7 +130,7 @@
     		<td>
     			<input type="radio" name="wp_resume_options[groups]" id="groups_yes" value="1" <?php checked($options['groups'], 1); ?>/> <label for="groups_yes"><?php _e('Yes', 'wp-resume'); ?></label><br />
     			<input type="radio" name="wp_resume_options[groups]" id="groups_no" value="0" <?php checked($options['groups'], 0); ?> <?php checked($options['groups'], null); ?>/> <label for="groups_no"><?php _e('No', 'wp-resume'); ?></label><br />
-    			<span class="description"><?php _e('When skills are used, skills with children will be considered "Skill Groups" and treated by the default template as categories within which those child skills fall.', 'wp-resume'); ?>.</span>
+    			<span class="description"><?php _e('When skills are used, skills with children will be considered "Skill Groups" and treated by the default template as categories within which those child skills fall. If URL rewriting is enabled, skill groups will only appear as links when they are directly associated with a position', 'wp-resume'); ?>.</span>
     		</td>
     	</tr>
     	<tr valign="top" class="underHood">
