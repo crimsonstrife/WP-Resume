@@ -531,105 +531,25 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 	}
     
 	/**
-	 * Produces HTML to represent a skill level as a progress bar to be styled by CSS.
-	 * @param int $level a percentage of skill mastery from 0-100
-	 * @since 2.5.8a
-	 */
-	function skill_bar_html($level){
-		$level = str_replace( ' ', '-', $level );
-		if( $level ) return "<span class='skill-level skill-level-$level' role='progressbar'
-aria-valuenow='$level' aria-valuemin='0' aria-valuemax='100' style='width: $level%'></span>";
-		return '';
-	}
-
-	/**
-	 * Echoes the HTML produced by skill_bar_html()
+	 * Echoes the HTML produced by the skill_bar_html() template
 	 */
 	function show_skill_bar($level){
-		echo $this->skill_bar_html($level);
+		echo $this->templating->skill_bar_html($level);
 	}
 
-    /**
-	 * Produces HTML to represent a skill as a list item with a skill_bar and a label
-	 * @since 2.5.8a
-	 */
-	function skill_html($skill){
-		$html = '';
-		$level = (int) $skill->description;	
-		$rewrite = $this->options->get_option('rewrite');	
-		if( $rewrite ) $html .= "<a href='/skills/{$skill->slug}'>";
-		$html .= "<li class='skill skill-{$skill->slug}" . ($rewrite ? ' linked' : '') . "'>";
-		$html .= "<label itemprop='itemListElement'>{$skill->name}</label>";
-		$html .= $this->skill_bar_html($level);
-		$html .= "</li>";
-		if( $rewrite ) $html .= "</a>";
-		return $html;
-	}
-	
+   
 	/**
 	 * Echoes the HTML produced by skill_html()
 	 */
 	function show_skill($skill){
-		echo $this->skill_html($skill);
-	}
-    
-	/**
-	 * Produces HTML to represent the entire skillset, which will either be a linear list of skills, or if groups are enabled and skills arranged hierarchically, with child skills inside boxes representing their parent skill groups. Skills and groups also have levels, and numeric skill levels are drawn as percentage bars below the skill names (leave blank to disable).
-	 * @since 2.5.8a
-	 */
-    function skills_html($postID){
-		$html = '';
-		// get all selected skills
-		$skills = $this->get_skills( $postID );
-		// get the parents of all selected skills
-		// note: this list is not exclusive with $skills, if a parent is also selected itself
-		$groups = $this->get_skill_groups( $postID, $skills );
-		// if groups are shown, top-level skills with no selected children will otherwise be ignored.
-		// here they are included so they can be listed inside a "skill-group-none" group at the end.
-		$orphan_skills = $this->get_orphans( $skills );
-		// skills and groups can be enabled/disabled in the advanced options
-		$show_skills = $this->options->get_option('skills');
-		$show_groups = $this->options->get_option('groups');
-		if( $show_skills && is_array($skills) && count($skills) ){
-			$grouping = false;
-			$html .= '<section class="skillset" itemscope itemtype="http://schema.org/ItemList">';
-			$html .= '<label itemprop="name">Skillset</label>';
-				if( $show_groups && is_array($groups) && count($groups) ){ 
-					$grouping = true;
-					$html .= '<ul class="skill-groups">';
-					foreach ( $groups as $group ){
-						$level = (int) $group->description;
-						$html .= "<li class='skill-group skill-group-" . $group->slug . "'>";
-						$html .= $this->skill_bar_html($level);
-						$html .= "<label itemprop='about'>" . $group->name . "</label>";
-							$html .= '<ul class="skills">';
-								foreach ( $skills as $skill ){
-									if( $skill->parent != $group->term_id ) continue;
-									$html .= $this->skill_html($skill);
-								}
-							$html .= '</ul>';
-						$html .= '</li>';
-					}
-				} else { 
-					$html .= '<ul class="skills">'; 
-				}
-				if ( !$grouping ){ $orphan_skills = $skills; }
-				if ( count($orphan_skills) ) {
-					foreach ( $orphan_skills as $skill ){
-						$html .= $this->skill_html($skill); 
-					} 
-				}
-				$html .= '</ul>';
-			$html .= '</section>';
-		}
-		return $html;
+		echo $this->templating->skill_html($skill);
 	}
 	
 	/**
 	 * Echo the HTML produced by skills_html()
 	 */ 
 	function show_skills($postID){
-		echo $this->skills_html($postID);
+		echo $this->templating->skills_html($postID);
 	}
 
 	/**
@@ -638,10 +558,12 @@ aria-valuenow='$level' aria-valuemin='0' aria-valuemax='100' style='width: $leve
 	 * @todo make options for above/below content, whether to include in archive posts, etc
 	 */	
 	function append_position_skills($content){
-		if( /*is_singular() &&*/ is_main_query() && get_post_type() == 'wp_resume_position' ) {
-			$new_content = $this->skills_html( get_the_ID() );	
+		$show_skills = $this->parent->options->get_option('skills');
+		if( $show_skills && /*is_singular() &&*/ is_main_query() && get_post_type() == 'wp_resume_position' ) {
+			$new_content = $this->templating->skills_html( get_the_ID() );	
+			return $content . $new_content;
 		}	
-		return $content . $new_content;
+		return $content;
 	}
 
 	/**
