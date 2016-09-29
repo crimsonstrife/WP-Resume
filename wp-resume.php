@@ -463,22 +463,25 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 	 * Retrieves the skills associated with a given position
 	 * @since 2.5.8a
 	 */
-	function get_skills( $postID ) {
+	function get_skills( $postID = null, $hide_empty = false ) {
 
-		if ( $cache = $this->cache->get( $postID . '_skills' ) )
-			return $cache;
-
-		$skills = wp_get_object_terms( $postID, 'wp_resume_skill' );
+        $slug = (is_int($postID) ? $postID . '_' : '') . 'skills';
+            
+        if ( $cache = $this->cache->get( $slug ) )
+            return $cache;
+			
+        $skills = is_int($postID) ? 
+			wp_get_object_terms( $postID, 'wp_resume_skill' ) :
+			get_terms( 'wp_resume_skill', $hide_empty );
 
 		if ( is_wp_error( $skills ) || !isset( $skills[0] ) )
 			return false;
-
+		
 		$skills = $this->api->apply_filters( 'skills', $skills );
 
-		$this->cache->set( $postID . '_skills', $skills );
+		$this->cache->set( $slug, $skills );
 
 		return $skills;
-
 	}
     
     /**
@@ -490,7 +493,9 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 			return false;
 		}
 		
-		if ( $cache = $this->cache->get( $postID . '_skill_groups' ) )
+		$slug = (is_int($postID) ? $postID . '_' : '') . 'skill_groups';
+		
+		if ( $cache = $this->cache->get( $slug ) )
 			return $cache;
         
         $skill_ids = array();
@@ -513,7 +518,7 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 
 		$groups = $this->api->apply_filters( 'groups', $groups );
 
-		$this->cache->set( $postID . '_skill_groups', $groups );
+		$this->cache->set( $slug, $groups );
 
 		return $groups;
 	}
@@ -555,13 +560,13 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 	/**
 	 * Adds the position skills to the end of the content.
 	 * @since 2.5.8a
-	 * @todo make options for above/below content, whether to include in archive posts, etc
 	 */	
 	function append_position_skills($content){
-		$show_skills = $this->parent->options->get_option('skills');
+		$show_skills = $this->options->get_option('skills');
+        // If is_singular() is uncommented, this will suppress the display of skills on archive pages
 		if( $show_skills && /*is_singular() &&*/ is_main_query() && get_post_type() == 'wp_resume_position' ) {
 			$new_content = $this->templating->skills_html( get_the_ID() );	
-			return $content . $new_content;
+			return ($show_skills == 'above') ? $new_content . $content : $content . $new_content;
 		}	
 		return $content;
 	}
@@ -836,9 +841,11 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 
 		//check to see if we have any sections, if not add the sections
 		if ( sizeof( $this->get_sections( false ) ) == 0 ) {
+			wp_insert_term( 'Skills', 'wp_resume_section' );
 			wp_insert_term( 'Education', 'wp_resume_section');
 			wp_insert_term( 'Experience', 'wp_resume_section' );
 			wp_insert_term( 'Awards', 'wp_resume_section' );
+			wp_insert_term( 'Projects', 'wp_resume_section' );
 		}
 
 		//1.6 -- add multi-user support (v. 1.6)

@@ -583,11 +583,14 @@ class WP_Resume_Admin {
 
 		if ( current_user_can( 'manage_options' ) ) {
 			//move site-wide fields to output array
-			$fields = array( 'fix_ie', 'rewrite', 'hide-title', 'skills', 'groups' );
-
-			foreach ($fields as $field)
+			$int_fields = array( 'fix_ie', 'rewrite', 'hide-title', 'projects' );
+			$str_fields = array( 'skills', 'skills-section', 'skills-section-groups', 'position-skill-groups' );
+			foreach ($int_fields as $field)
 				$options[$field] = (int) $data[$field];
 
+			foreach ($str_fields as $field)
+				$options[$field] = (string) $data[$field];
+				
 			$options = $this->parent->api->apply_filters( 'options', $options );
 			$this->parent->options->set_options( $options );
 
@@ -663,8 +666,8 @@ class WP_Resume_Admin {
 	 */
 	function order_dragdrop( $current_author ) { ?>
 		<ul id="sections">
-			<?php //loop through the user's non-empty section
-		foreach ( $this->parent->get_sections( true, $current_author ) as $section )
+			<?php //loop through all the user's sections (including empty, to support skills summaries)
+		foreach ( $this->parent->get_sections( false, $current_author ) as $section )
 			$this->dragdrop_section ( $current_author, $section );
 ?>
 		</ul><!-- #sections -->

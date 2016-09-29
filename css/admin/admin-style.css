@@ -84,3 +84,13 @@ li.project-form + li.project-form {
 .project-form .dashicons.project-remove:hover {
 	color: #F77;
 }
+
+/* Skills Options */
+.input-group {
+	float: left;
+	display: inline-block;
+	margin-right: 20px;
+}
+br+.description {
+	clear: both;
+}
