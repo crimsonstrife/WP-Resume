@@ -417,20 +417,20 @@ class WP_Resume_Templating {
 		// if groups are shown, top-level skills with no selected children will otherwise be ignored.
 		// here they are included so they can be listed inside a "skill-group-none" group at the end.
 		$orphan_skills = $this->parent->get_orphans( $skills );
-		// skills and groups can be enabled/disabled in the advanced options
-		$show_groups = $this->parent->options->get_option(is_int($postID) ? 'position-skill-groups' : 'skills-section-groups');
-		$rewrite = $this->parent->options->get_option('rewrite');
+		// user options are checked here and then passed as an array to the various html templates
 		$defaults = array(
-			'show_groups' => $show_groups,
-			'rewrite' => $rewrite,
+			'show_groups' => $this->parent->options->get_option(is_int($postID) ? 'position-skill-groups' : 'skills-section-groups'),
+			'rewrite' => $this->parent->options->get_option('rewrite'),
 			'sort' => 'name ASC',
 			'post_id' => $postID,
+			'label' => $this->parent->options->get_option(is_int($postID) ? 'position-skills-label' : 'skills-section-label'),
 		);
 		$options = wp_parse_args( $options, $defaults );
 		if( is_array($skills) && count($skills) ){
 			$grouping = false;
 			$html .= '<section class="skillset" itemscope itemtype="http://schema.org/ItemList">';
-			$html .= '<label itemprop="name">Skillset</label>';
+			if( isset($options['label']) && strlen($options['label']) )
+				$html .= "<label itemprop='name'>{$options['label']}</label>";
 			if(  is_array($groups) && count($groups) ){ 
 				$grouping = true;
 				$html .= '<ul class="skill-groups">';

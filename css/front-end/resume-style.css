@@ -51,7 +51,6 @@ html[xmlns] .resume .clearfix {	display: block;}
 	margin-top: 0.5em;
 	margin-right: 3px;
 }
-.skillset>label:after { content: ": "; }
 .skillset .skill-group>label, .skillset .skill-group>a>label { 
 	display: block; 
 	padding: 2px .5em;

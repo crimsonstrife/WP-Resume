@@ -98,6 +98,7 @@
     		<th scope="row">&nbsp; <?php _e('Position Skills', 'wp-resume'); ?></th>
     		<td>
     			<span class="input-group">
+                    <label for="wp_resume_options[position-skills-label]">Label text: <input type="text" name="wp_resume_options[position-skills-label]" value="<?php echo strlen($options['position-skills-label']) ? $options['position-skills-label'] : '' ?>"></label><br />
                     <input type="radio" name="wp_resume_options[skills]" id="skills_above" value="above" <?php checked($options['skills'], 'above'); ?>/> <label for="skills_above"><?php _e('Above Position content', 'wp-resume'); ?></label><br />
                     <input type="radio" name="wp_resume_options[skills]" id="skills_below" value="below" <?php checked($options['skills'], 'below'); ?>/> <label for="skills_below"><?php _e('Below Position content', 'wp-resume'); ?></label><br />
     			    <input type="radio" name="wp_resume_options[skills]" id="skills_no" value="0" <?php checked($options['skills'], 0); ?> <?php checked($options['skills'], null); ?>/> <label for="skills_no"><?php _e('Not shown', 'wp-resume'); ?></label><br />
@@ -116,6 +117,7 @@
     		<th scope="row">&nbsp; <?php _e('Skills Section', 'wp-resume'); ?></th>
     		<td>
                 <span class="input-group">
+                	<label for="wp_resume_options[skills-section-label]">Label text: <input type="text" name="wp_resume_options[skills-section-label]" value="<?php echo strlen($options['skills-section-label']) ? $options['skills-section-label'] : '' ?>"></label><br />
                     <input type="radio" name="wp_resume_options[skills-section]" id="skills-section_above" value="above" <?php checked($options['skills-section'], 'above'); ?>/> <label for="skills-section_above"><?php _e('Show Skills Above Positions', 'wp-resume'); ?></label><br />
                     <input type="radio" name="wp_resume_options[skills-section]" id="skills-section_below" value="below" <?php checked($options['skills-section'], 'below'); ?>/> <label for="skills-section_below"><?php _e('Show Skills Below Positions', 'wp-resume'); ?></label><br />
     			    <input type="radio" name="wp_resume_options[skills-section]" id="skills-section_no" value="0" <?php checked($options['skills-section'], 0); ?> <?php checked($options['skills-section'], null); ?>/> <label for="skills-section_no"><?php _e('Hide Skills Section Summary', 'wp-resume'); ?></label><br />

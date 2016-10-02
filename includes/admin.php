@@ -584,7 +584,7 @@ class WP_Resume_Admin {
 		if ( current_user_can( 'manage_options' ) ) {
 			//move site-wide fields to output array
 			$int_fields = array( 'fix_ie', 'rewrite', 'hide-title', 'projects' );
-			$str_fields = array( 'skills', 'skills-section', 'skills-section-groups', 'position-skill-groups' );
+			$str_fields = array( 'skills', 'skills-section', 'skills-section-groups', 'position-skill-groups', 'position-skills-label', 'skills-section-label' );
 			foreach ($int_fields as $field)
 				$options[$field] = (int) $data[$field];
 
