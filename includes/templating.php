@@ -363,7 +363,8 @@ class WP_Resume_Templating {
 	function skill_html($skill, $options){
 		$html = '';
 		$level = (int) $skill->description;	
-		if( $options['rewrite'] ) $html .= "<a href='/skills/{$skill->slug}'>";
+        $link = get_term_link($skill, 'skills');
+		if( $options['rewrite'] ) $html .= "<a href='{$link}'>";
 		$html .= "<li rel='tag' class='skill skill-{$skill->slug}" . ($options['rewrite'] ? ' linked' : '') . "'>";
 		$html .= "<label itemprop='itemListElement'";
 		if( $options['title'] ) $html .= " title='{$options['title']}'";
@@ -384,10 +385,11 @@ class WP_Resume_Templating {
 		$html = '';
 		$rewrite = $options['rewrite'];
 		$level = (int) $group->description;
+        $link = get_term_link($group, 'skills');
 		$html .= "<li class='skill-group skill-group-{$group->slug}'>";
 		$html .= $this->skill_bar_html($level);
 		if( $options['show_groups'] == 'label' || $options['show_groups'] == 'both' ){
-			if( $rewrite ) $html .= "<a href='/skills/{$group->slug}'>";
+			if( $rewrite ) $html .= "<a href='{$link}'>";
 			$html .= "<label itemprop='about'>{$group->name}</label>";
 			if( $rewrite ) $html .= "</a>";
 		}
