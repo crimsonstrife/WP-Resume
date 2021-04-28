@@ -68,9 +68,13 @@ $options = $resume->options->get_options();
 				//retrieve all posts in the current section using our custom loop query
 				$positions = $resume->query( $section->slug, $template->author );
 				
+				// if options allow for display of skills section summary above positions, insert before loop.
+				$show_skills = $resume->options->get_option('skills-section');
+				
 				//loop through all posts in the current section using the standard WP loop
-				if ( $positions->have_posts() ) : ?>
+				if ( ($section->slug == 'skills' && $show_skills) || $positions->have_posts() ) : ?>
 				<header><?php echo $template->get_section_name( $section ); ?></header>
+				<?php if( $section->slug == 'skills' && $show_skills == 'above' ) echo $template->skills_html(); ?>
 				<?php while ( $positions->have_posts() ) : $positions->the_post();
 				
 					//Retrieve details on the current position's organization
@@ -111,8 +115,9 @@ $options = $resume->options->get_options();
 				<?php }
 
 				//End loop
-				endwhile; endif;	
+				endwhile; endif;				
 ?>
+				<?php if( $section->slug == 'skills' && $show_skills == 'below' ) echo $template->skills_html(); ?>
 			</section><!-- .section -->
 <?php } ?> 
 		</div><!-- #resume -->

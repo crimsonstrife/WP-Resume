@@ -87,6 +87,53 @@
     	<?php if ( current_user_can( 'manage_options' ) ) { ?>
     	<tr valign="top">
     		<th scope="row">
+    			<?php _e( 'Skills', 'wp-resume' ); ?>
+    		</th>
+    		<td>
+    			<span class="description"><?php _e('These options specify how Skills are displayed in the default resume.php template. Skills added through the Skills admin panel can be associated with positions from within the position post editor. Skills are currently an alpha feature and have not yet been tested with multiple users', 'wp-resume'); ?>.</span>
+    		</td>
+    	</tr>
+
+    	<tr valign="top">
+    		<th scope="row">&nbsp; <?php _e('Position Skills', 'wp-resume'); ?></th>
+    		<td>
+    			<span class="input-group">
+                    <label for="wp_resume_options[position-skills-label]">Label text: <input type="text" name="wp_resume_options[position-skills-label]" value="<?php echo strlen($options['position-skills-label']) ? $options['position-skills-label'] : '' ?>"></label><br />
+                    <input type="radio" name="wp_resume_options[skills]" id="skills_above" value="above" <?php checked($options['skills'], 'above'); ?>/> <label for="skills_above"><?php _e('Above Position content', 'wp-resume'); ?></label><br />
+                    <input type="radio" name="wp_resume_options[skills]" id="skills_below" value="below" <?php checked($options['skills'], 'below'); ?>/> <label for="skills_below"><?php _e('Below Position content', 'wp-resume'); ?></label><br />
+    			    <input type="radio" name="wp_resume_options[skills]" id="skills_no" value="0" <?php checked($options['skills'], 0); ?> <?php checked($options['skills'], null); ?>/> <label for="skills_no"><?php _e('Not shown', 'wp-resume'); ?></label><br />
+                </span>
+                <span class="input-group">
+                    <input type="radio" name="wp_resume_options[position-skill-groups]" id="position-skill-groups_label" value="label" <?php checked($options['position-skill-groups'], 'label'); ?>/> <label for="position-skill-groups_label"><?php _e('Show Group Name Labels', 'wp-resume'); ?></label><br />
+                    <input type="radio" name="wp_resume_options[position-skill-groups]" id="position-skill-groups_title" value="title" <?php checked($options['position-skill-groups'], 'title'); ?>/> <label for="position-skill-groups_title"><?php _e('Show Group Names as Skill mouseover Titles', 'wp-resume'); ?></label><br />
+                    <input type="radio" name="wp_resume_options[position-skill-groups]" id="position-skill-groups_both" value="both" <?php checked($options['position-skill-groups'], 'both'); ?>/> <label for="position-skill-groups_both"><?php _e('Show Group Name Labels and Titles', 'wp-resume'); ?></label><br />
+                    <input type="radio" name="wp_resume_options[position-skill-groups]" id="position-skill-groups_neither" value="neither" <?php checked($options['position-skill-groups'], 'neither'); ?>/> <label for="position-skill-groups_neither"><?php _e('Group Skills but hide labels', 'wp-resume'); ?></label><br />
+    			    <input type="radio" name="wp_resume_options[position-skill-groups]" id="position-skill-groups_no" value="0" <?php checked($options['position-skill-groups'], 0); ?> <?php checked($options['position-skill-groups'], null); ?>/> <label for="position-skill-groups_no"><?php _e('Do not group Skills.', 'wp-resume'); ?></label><br />
+                </span><br />
+    			<p class="description"><?php _e('Shows any skills attached to a Position, before or after the content, similar to categories or tags on a post. If URL rewriting is enabled, skills will be links to an archive page showing positions associated with that skill', 'wp-resume'); ?>.</p>
+    		</td>
+    	</tr>
+        <tr valign="top">
+    		<th scope="row">&nbsp; <?php _e('Skills Section', 'wp-resume'); ?></th>
+    		<td>
+                <span class="input-group">
+                	<label for="wp_resume_options[skills-section-label]">Label text: <input type="text" name="wp_resume_options[skills-section-label]" value="<?php echo strlen($options['skills-section-label']) ? $options['skills-section-label'] : '' ?>"></label><br />
+                    <input type="radio" name="wp_resume_options[skills-section]" id="skills-section_above" value="above" <?php checked($options['skills-section'], 'above'); ?>/> <label for="skills-section_above"><?php _e('Show Skills Above Positions', 'wp-resume'); ?></label><br />
+                    <input type="radio" name="wp_resume_options[skills-section]" id="skills-section_below" value="below" <?php checked($options['skills-section'], 'below'); ?>/> <label for="skills-section_below"><?php _e('Show Skills Below Positions', 'wp-resume'); ?></label><br />
+    			    <input type="radio" name="wp_resume_options[skills-section]" id="skills-section_no" value="0" <?php checked($options['skills-section'], 0); ?> <?php checked($options['skills-section'], null); ?>/> <label for="skills-section_no"><?php _e('Hide Skills Section Summary', 'wp-resume'); ?></label><br />
+                </span>
+                <span class="input-group">
+                    <input type="radio" name="wp_resume_options[skills-section-groups]" id="skills-section-groups_label" value="label" <?php checked($options['skills-section-groups'], 'label'); ?>/> <label for="skills-section-groups_label"><?php _e('Show Group Name Labels', 'wp-resume'); ?></label><br />
+                    <input type="radio" name="wp_resume_options[skills-section-groups]" id="skills-section-groups_title" value="title" <?php checked($options['skills-section-groups'], 'title'); ?>/> <label for="skills-section-groups_title"><?php _e('Show Group Names as Skill mouseover Titles', 'wp-resume'); ?></label><br />
+                    <input type="radio" name="wp_resume_options[skills-section-groups]" id="skills-section-groups_both" value="both" <?php checked($options['skills-section-groups'], 'both'); ?>/> <label for="skills-section-groups_both"><?php _e('Show Group Name Labels and Titles', 'wp-resume'); ?></label><br />
+                    <input type="radio" name="wp_resume_options[skills-section-groups]" id="skills-section-groups_neither" value="neither" <?php checked($options['skills-section-groups'], 'neither'); ?>/> <label for="skills-section-groups_neither"><?php _e('Group Skills but hide labels', 'wp-resume'); ?></label><br />
+    			    <input type="radio" name="wp_resume_options[skills-section-groups]" id="skills-section-groups_no" value="0" <?php checked($options['skills-section-groups'], 0); ?> <?php checked($options['skills-section-groups'], null); ?>/> <label for="skills-section-groups_no"><?php _e('Do not group Skills.', 'wp-resume'); ?></label><br />
+                </span><br />
+    			<p class="description"><?php _e('Shows a summary of all Skills created through the "Skills" admin panel. Skills are shown within a section named "Skills" which must be created separately using the "Sections" admin panel. If URL rewriting is enabled, skills will be links to an archive page showing positions associated with that skill. You may add your own positions to this "Skills" category and they will appear either above or below your skills summary, as defined by this setting', 'wp-resume'); ?>.</p>
+    		</td>
+    	</tr>
+    	<tr valign="top">
+    		<th scope="row">
     			<?php _e( 'Advanced Options', 'wp-resume' ); ?>
     		</th>
     		<td>
@@ -94,7 +141,7 @@
     		</td>
     	</tr>
     	<tr valign="top" class="underHood">
-    		<th scrope="row"><?php _e('Force IE HTML5 Support', 'wp-resume'); ?></th>
+    		<th scope="row"><?php _e('Force IE HTML5 Support', 'wp-resume'); ?></th>
     		<td>
     			<input type="radio" name="wp_resume_options[fix_ie]" id="fix_ie_yes" value="1" <?php checked($options['fix_ie'], 1); ?>/> <label for="fix_ie_yes"><?php _e('Yes', 'wp-resume'); ?></label><br />
     			<input type="radio" name="wp_resume_options[fix_ie]" id="fix_ie_no" value="0" <?php checked($options['fix_ie'], 0); ?>/> <label for="fix_ie_no"><?php _e('No', 'wp-resume'); ?></label><br />
@@ -102,7 +149,7 @@
     		</td>
     	</tr>
     	<tr valign="top" class="underHood">
-    		<th scrope="row"><?php _e('Hide Page Title', 'wp-resume'); ?></th>
+    		<th scope="row"><?php _e('Hide Page Title', 'wp-resume'); ?></th>
     		<td>
     			<input type="radio" name="wp_resume_options[hide-title]" id="hide_yes" value="1" <?php checked($options['hide-title'], 1); ?>/> <label for="hide_yes"><?php _e('Yes', 'wp-resume'); ?></label><br />
     			<input type="radio" name="wp_resume_options[hide-title]" id="hide_no" value="0" <?php checked($options['hide-title'], 0); ?> <?php checked($options['hide-title'], null); ?>/> <label for="hide_no"><?php _e('No', 'wp-resume'); ?></label><br />
@@ -110,15 +157,24 @@
     		</td>
     	</tr>
     	<tr valign="top" class="underHood">
-    		<th scrope="row"><?php _e('Enable URL Rewriting', 'wp-resume'); ?></th>
+    		<th scope="row"><?php _e('Enable URL Rewriting', 'wp-resume'); ?></th>
     		<td>
     			<input type="radio" name="wp_resume_options[rewrite]" id="rewrite_yes" value="1" <?php checked($options['rewrite'], 1); ?>/> <label for="rewrite_yes"><?php _e('Yes', 'wp-resume'); ?></label><br />
     			<input type="radio" name="wp_resume_options[rewrite]" id="rewrite_no" value="0" <?php checked($options['rewrite'], 0); ?> <?php checked($options['rewrite'], null); ?>/> <label for="rewrite_no"><?php _e('No', 'wp-resume'); ?></label><br />
-    			<span class="description"><?php _e('Creates individual pages for each position, and index pages for each section and organization', 'wp-resume'); ?>.</span>
+    			<span class="description"><?php _e('Creates individual pages for each position, and index pages for each section, organization, and skill', 'wp-resume'); ?>.</span>
+    		</td>
+    	</tr>
+        <tr valign="top" class="underHood">
+    		<th scope="row"><?php _e('Show Projects', 'wp-resume'); ?></th>
+    		<td>
+    			<input type="radio" name="wp_resume_options[projects]" id="projects_list" value="list" <?php checked($options['projects'], 'list'); ?>/> <label for="projects_list"><?php _e('List', 'wp-resume'); ?></label> <i>(displays as an unordered HTML list)</i><br />
+    			<input type="radio" name="wp_resume_options[projects]" id="projects_text_list" value="text_list" <?php checked($options['projects'], 'text_list'); ?>/> <label for="projects_text_list"><?php _e('Text List', 'wp-resume'); ?></label> <i>(displays as a comma-separated text list)</i><br />
+    			<input type="radio" name="wp_resume_options[projects]" id="projects_no" value="0" <?php checked($options['projects'], 0); ?> <?php checked($options['projects'], null); ?>/> <label for="projects_no"><?php _e('No', 'wp-resume'); ?></label><br />
+    			<span class="description"><?php _e('Shows a list of projects as either an HTML or text list.', 'wp-resume'); ?>.</span>
     		</td>
     	</tr>
     	<tr valign="top" class="underHood">
-    		<th scrope="row"><?php _e('Customizing WP Resume', 'wp-resume'); ?></th>
+    		<th scope="row"><?php _e('Customizing WP Resume', 'wp-resume'); ?></th>
     		<td>
     			<Strong><?php _e('Style Sheets', 'wp-resume'); ?></strong><br />
     			<?php _e('Although some styling is included by default, you can customize the layout by modifying <a href="theme-editor.php">your theme\'s stylesheet</a>', 'wp-resume'); ?>.<br /><br />

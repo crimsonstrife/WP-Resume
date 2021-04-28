@@ -3,7 +3,7 @@
 Plugin Name: WP Resume
 Plugin URI: http://ben.balter.com/2010/09/12/wordpress-resume-plugin/
 Description: Out-of-the-box plugin which utilizes custom post types and taxonomies to add a snazzy resume to your personal blog or Web site.
-Version: 2.5.7
+Version: 2.5.8a
 Author: Benjamin J. Balter
 Author URI: http://ben.balter.com/
 License: GPL3
@@ -87,7 +87,10 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 
 		//init
 		add_action( 'wp_resume_init', array( &$this, 'init' ) );
-
+	
+		//position skills
+		add_filter('the_content', array( &$this, 'append_position_skills') );
+	
 		//back compat
 		add_filter( 'wp_resume_load_deprecated', '__return_false' );
 
@@ -160,7 +163,7 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 			'menu_position'        => null,
 			'register_meta_box_cb' => array( &$this->admin, 'meta_callback' ),
 			'supports'             => array( 'title', 'editor', 'revisions', 'custom-fields', 'page-attributes', 'author'),
-			'taxonomies'           => array('wp_resume_section', 'wp_resume_organization'),
+			'taxonomies'           => array('wp_resume_section', 'wp_resume_organization', 'wp_resume_skill'),
 		);
 
 		$args = $this->api->apply_filters( 'cpt', $args );
@@ -229,6 +232,37 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 
 		//Register organization taxonomy
 		register_taxonomy( 'wp_resume_organization', 'wp_resume_position', $args );
+
+		//Skill labels array
+		$labels = array(
+			'name'              => _x( 'Skills', 'taxonomy general name', 'wp-resume' ),
+			'singular_name'     => _x( 'Skill', 'taxonomy singular name', 'wp-resume' ),
+			'search_items'      => __( 'Search Skills', 'wp-resume' ),
+			'all_items'         => __( 'All Skills', 'wp-resume' ),
+			'parent_item'       => __( 'Skill Group', 'wp-resume' ),
+			'parent_item_colon' => __( 'Skill Group:', 'wp-resume' ),
+			'edit_item'         => __( 'Edit Skill', 'wp-resume' ),
+			'update_item'       => __( 'Update Skill', 'wp-resume' ),
+			'add_new_item'      => __( 'Add New Skill', 'wp-resume' ),
+			'new_item_name'     => __( 'New Skill Name', 'wp-resume' ),
+		);
+
+		$args = $this->api->apply_filters( 'skill_ct', array(
+			'hierarchical' => true,
+			'labels' => $labels,
+			'query_var' => true,
+			'rewrite' => ( $rewrite ) ? array( 'slug' => 'skills' ) : false,
+			'capabilities' => array(
+				'manage_terms'  => 'manage_resume_skills',
+				'edit_terms'    => 'edit_resume_skills',
+				'delete_terms'  => 'delete_resume_skills',
+				'assign_terms ' => 'assign_resume_skills',
+				),
+			)
+		);
+
+		//Register skill taxonomy
+		register_taxonomy( 'wp_resume_skill', 'wp_resume_position', $args );
 
 	}
 
@@ -425,6 +459,153 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 	}
 
 
+    /**
+	 * Retrieves the skills associated with a given position
+	 * @since 2.5.8a
+	 */
+	function get_skills( $postID = null, $hide_empty = false ) {
+
+        $slug = (is_int($postID) ? $postID . '_' : '') . 'skills';
+            
+        if ( $cache = $this->cache->get( $slug ) )
+            return $cache;
+			
+        $skills = is_int($postID) ? 
+			wp_get_object_terms( $postID, 'wp_resume_skill' ) :
+			get_terms( 'wp_resume_skill', $hide_empty );
+
+		if ( is_wp_error( $skills ) || !isset( $skills[0] ) )
+			return false;
+		
+		$skills = $this->api->apply_filters( 'skills', $skills );
+
+		$this->cache->set( $slug, $skills );
+
+		return $skills;
+	}
+    
+    /**
+	 * Retrieves the skill groups associated with a given position
+	 * @since 2.5.8a
+	 */
+	function get_skill_groups( $postID, $skills ) {
+		if( !is_array($skills) || !isset($skills[0]) ){
+			return false;
+		}
+		
+		$slug = (is_int($postID) ? $postID . '_' : '') . 'skill_groups';
+		
+		if ( $cache = $this->cache->get( $slug ) )
+			return $cache;
+        
+        $skill_ids = array();
+        foreach ( $skills as $skill ){
+            if( isset($skill->parent) ){
+                if ( !array_key_exists($skill->parent, $skill_ids) ){
+                    $skill_ids[(int)$skill->parent] = $skill;
+                }
+            }
+        }
+        $skill_ids = array_keys($skill_ids);
+        $groups = get_terms( array(
+            'taxonomy' => 'wp_resume_skill',
+            'hide_empty' => false,
+            'include' => $skill_ids
+        ) );
+        
+		if ( is_wp_error( $groups ) || !isset( $groups[0] ) )
+			return false;
+
+		$groups = $this->api->apply_filters( 'groups', $groups );
+
+		$this->cache->set( $slug, $groups );
+
+		return $groups;
+	}
+    
+    /**
+	 * Filters an array to remove elements with 'parent' property set. Used to identify skills not part of a skill group.
+	 * @param array $var an array of any object with a 'parent' property
+	 * @since 2.5.8a
+	 */
+	function get_orphans( $skills ){ 
+		if( !function_exists('no_parent') ){
+			function no_parent( $var ){ return isset($var->parent) ? ($var->parent <= 0) : true; }
+		}
+		return is_array($skills) ? array_filter($skills, "no_parent") : array(); 
+	}
+    
+	/**
+	 * Echoes the HTML produced by the skill_bar_html() template
+	 */
+	function show_skill_bar($level){
+		echo $this->templating->skill_bar_html($level);
+	}
+
+   
+	/**
+	 * Echoes the HTML produced by skill_html()
+	 */
+	function show_skill($skill){
+		echo $this->templating->skill_html($skill);
+	}
+	
+	/**
+	 * Echo the HTML produced by skills_html()
+	 */ 
+	function show_skills($postID){
+		echo $this->templating->skills_html($postID);
+	}
+
+	/**
+	 * Adds the position skills to the end of the content.
+	 * @since 2.5.8a
+	 */	
+	function append_position_skills($content){
+		$show_skills = $this->options->get_option('skills');
+        // If is_singular() is uncommented, this will suppress the display of skills on archive pages
+		if( $show_skills && /*is_singular() &&*/ is_main_query() && get_post_type() == 'wp_resume_position' ) {
+			$new_content = $this->templating->skills_html( get_the_ID() );	
+			return ($show_skills == 'above') ? $new_content . $content : $content . $new_content;
+		}	
+		return $content;
+	}
+
+	/**
+	 * Sets the post_meta 'projects' field to an array of associative arrays each representing a project.
+	 * Each element in the array should have fields named 'name', 'type', 'url', or 'description'.
+	 * @since 2.5.8a
+	 */
+	function set_projects($postID, $projects){
+		// before saving, clear any empty entries from the array
+		$to_save = array();
+		foreach ( $projects as $project ){
+			$empty = true;
+			foreach ( $project as $k => $v ) {
+				if ( strlen($v) > 0 ) {
+				 	$empty = false;
+					break;
+				}
+			}
+			if ( !$empty ) { 
+				array_push($to_save, $project);
+			}
+		}
+		if( !add_post_meta($postID, 'projects', $to_save, true ) ){
+			update_post_meta($postID, 'projects', $to_save);
+		}
+	}
+	
+	/**
+	 * Gets the 'projects' post_meta field which should be an array of associative arrays each representing a project.
+	 * Each element in the array should have fields named 'name', 'type', 'url', or 'description'.
+	 * @since 2.5.8a
+	 */
+	function get_projects($postID){
+		$projects = get_post_meta($postID, 'projects', true);
+		return is_array($projects) ? $projects : array();
+	}
+	
 	/**
 	 * Flushes all wp-resume data from the object cache, if it exists
 	 */
@@ -660,9 +841,11 @@ class WP_Resume extends Plugin_Boilerplate_v_1 {
 
 		//check to see if we have any sections, if not add the sections
 		if ( sizeof( $this->get_sections( false ) ) == 0 ) {
+			wp_insert_term( 'Skills', 'wp_resume_section' );
 			wp_insert_term( 'Education', 'wp_resume_section');
 			wp_insert_term( 'Experience', 'wp_resume_section' );
 			wp_insert_term( 'Awards', 'wp_resume_section' );
+			wp_insert_term( 'Projects', 'wp_resume_section' );
 		}
 
 		//1.6 -- add multi-user support (v. 1.6)

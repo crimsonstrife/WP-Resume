@@ -371,4 +371,159 @@ class WP_Resume_Templating {
 	}
 
 
+	/**
+	 * Produces HTML to represent a skill level as a progress bar to be styled by CSS.
+	 * @param int $level a percentage of skill mastery from 0-100
+	 * @since 2.5.8a
+	 */
+	function skill_bar_html($level){
+		$slug = str_replace( ' ', '-', $level );
+		$html = '';
+		if( $level || is_int($level) ) $html .= "<span class='skill-level skill-level-$slug' role='progressbar'";
+		if( is_int($level) ) $html .= " aria-valuenow='$level' aria-valuemin='0' aria-valuemax='100' style='width: $level%'";
+		if( $level || is_int($level) ) $html .= "></span>";
+		return $html;
+	}
+
+ 	/**
+	 * Produces HTML to represent a skill as a list item with a skill_bar and a label
+	 * @param object $skill the skill represented as a WP taxonomy term object
+	 * @since 2.5.8a
+	 */
+	function skill_html($skill, $options){
+		$html = '';
+		$level = (int) $skill->description;	
+        $link = get_term_link($skill, 'skills');
+		if( $options['rewrite'] ) $html .= "<a href='{$link}'>";
+		$html .= "<li rel='tag' class='skill skill-{$skill->slug}" . ($options['rewrite'] ? ' linked' : '') . "'>";
+		$html .= "<label itemprop='itemListElement'";
+		if( $options['title'] ) $html .= " title='{$options['title']}'";
+		$html .= ">{$skill->name}</label>";
+		$html .= $this->skill_bar_html($level);
+		$html .= "</li>";
+		if( $options['rewrite'] ) $html .= "</a>";
+		return $html;
+	}
+		
+	/**
+	 * Return HTML to display a skill group and its child skills as a nested set.
+	 * @param object(WP_Term) $group the parent wp_resume_skill
+	 * @param array(object(WP_Term)) $skills an array of wp_resume_skill terms. Any terms which are not a child of $group will be ignored.
+	 * @return the HTML for the skill group
+	 */
+	 function skill_group_html($group, $skills, $options) {	
+		$html = '';
+		$rewrite = $options['rewrite'];
+		$level = (int) $group->description;
+        $link = get_term_link($group, 'skills');
+		$html .= "<li class='skill-group skill-group-{$group->slug}'>";
+		$html .= $this->skill_bar_html($level);
+		if( $options['show_groups'] == 'label' || $options['show_groups'] == 'both' ){
+			if( $rewrite ) $html .= "<a href='{$link}'>";
+			$html .= "<label itemprop='about'>{$group->name}</label>";
+			if( $rewrite ) $html .= "</a>";
+		}
+		$html .= '<ul class="skills">';
+		foreach ( $skills as $skill ){
+			if( $skill->parent != $group->term_id ) continue;
+			$options['title'] = ( $options['show_groups'] == 'title' || $options['show_groups'] == 'both' ) ? $group->name : null;
+			$html .= $this->skill_html($skill, $options);
+		}
+		$html .= '</ul>';
+		$html .= '</li>';	
+		return $html;	
+	}
+	
+	/**
+	 * Produces HTML to represent the entire skillset, which will either be a linear list of skills, or if groups are enabled and skills arranged hierarchically, with child skills inside boxes representing their parent skill groups. Skills and groups also have levels, and numeric skill levels are drawn as percentage bars below the skill names (leave blank to disable).
+	 * @param int $postID the id of the wp_resume_position post to show skills for
+	 * @since 2.5.8a
+	 */
+    function skills_html($postID = null, $options = array() ){
+		$html = '';
+		// get all selected skills
+		$skills = $this->parent->get_skills( $postID );
+		// get the parents of all selected skills
+		// note: this list is not exclusive with $skills, if a parent is also selected itself
+		$groups = $this->parent->get_skill_groups( $postID, $skills );
+		// if groups are shown, top-level skills with no selected children will otherwise be ignored.
+		// here they are included so they can be listed inside a "skill-group-none" group at the end.
+		$orphan_skills = $this->parent->get_orphans( $skills );
+		// user options are checked here and then passed as an array to the various html templates
+		$defaults = array(
+			'show_groups' => $this->parent->options->get_option(is_int($postID) ? 'position-skill-groups' : 'skills-section-groups'),
+			'rewrite' => $this->parent->options->get_option('rewrite'),
+			'sort' => 'name ASC',
+			'post_id' => $postID,
+			'label' => $this->parent->options->get_option(is_int($postID) ? 'position-skills-label' : 'skills-section-label'),
+		);
+		$options = wp_parse_args( $options, $defaults );
+		if( is_array($skills) && count($skills) ){
+			$grouping = false;
+			$html .= '<section class="skillset" itemscope itemtype="http://schema.org/ItemList">';
+			if( isset($options['label']) && strlen($options['label']) )
+				$html .= "<label itemprop='name'>{$options['label']}</label>";
+			if(  is_array($groups) && count($groups) ){ 
+				$grouping = true;
+				$html .= '<ul class="skill-groups">';
+				foreach ( $groups as $group ){
+					$html .= $this->skill_group_html($group, $skills, $options);
+				}
+			} else { 
+				$html .= '<ul class="skills">'; 
+			}
+			if ( !$grouping ){ $orphan_skills = $skills; }
+			if ( count($orphan_skills) && (!$grouping || !is_int($postID) ) ) {
+				foreach ( $orphan_skills as $skill ){
+					// Skip groups we have already rendered in all skills mode
+					if ( $postID == null && in_array( $skill, $groups ) ) continue;
+					$html .= $this->skill_html($skill, $options); 
+				} 
+			}
+			$html .= '</ul>';
+			$html .= '</section>';
+		}
+		return $html;
+	}
+	
+	/**
+	 * Return HTML to display the projects related to a position
+	 * @param $post the ID of the wp_resume_position
+	 * @return the HTML for its projects, or a blank string
+	 */
+	function projects_html($post, $type='text'){
+		$html = '';
+		$projects = get_post_meta( $post, 'projects', true );
+		if( is_array($projects) && count($projects) ){
+			for( $i = 0; $i < count($projects); $i++ ){
+				$project = $projects[$i];
+				if( $i > 0 && $type == 'text' ){
+					$html .= ', ';
+				}
+				$html .= $this->project_html($project);
+			}
+		}
+		return $html;
+	}
+
+	/**
+	 * Return HTML to display a specific project
+	 * @param $project the project metadata array with 'name', 'type', 'link', and 'description' fields.
+	 * @return the HTML for the project
+	 */
+	function project_html($project){
+		$html = '';
+		if( isset($project['link']) && count($project['link']) ){
+			$html .= "<a href='{$project['link']}'>";
+		}
+		$html .= $project['name'];
+		if( count($project['type']) ){
+			$html .= " ({$project['type']})";
+		}
+		if( isset($project['link']) && count($project['link']) ){
+			$html .= "</a>";
+		}
+		return $html;
+	}
+
 }
